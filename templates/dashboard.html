@@ -1,0 +1,28 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Identity</h1>
+  <p><strong>User:</strong> {{ username }}</p>
+  <p><strong>Role:</strong> {{ user.role }}</p>
+  <p><strong>Department:</strong> {{ user.department }}</p>
+</div>
+
+<div class="card">
+  <h2>My Devices (NAC status)</h2>
+  <table>
+    <tr><th>Device</th><th>Segment</th><th>Antivirus</th><th>OS Patched</th><th>Encrypted</th><th>Admission</th></tr>
+    {% for name, d in devices.items() %}
+      {% set ok = d.antivirus and d.os_patched and d.encrypted %}
+      <tr>
+        <td>{{ name }}</td>
+        <td>{{ d.segment }}</td>
+        <td class="{{ 'ok' if d.antivirus else 'bad' }}">{{ 'Yes' if d.antivirus else 'No' }}</td>
+        <td class="{{ 'ok' if d.os_patched else 'bad' }}">{{ 'Yes' if d.os_patched else 'No' }}</td>
+        <td class="{{ 'ok' if d.encrypted else 'bad' }}">{{ 'Yes' if d.encrypted else 'No' }}</td>
+        <td class="{{ 'ok' if ok else 'bad' }}">{{ 'Admitted' if ok else 'Quarantined' }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Segmentation Policy Map (application layer)</h1>
+  <p class="muted">This is the policy the app enforces. The same policy is enforced by nftables in the Network Lab.</p>
+  {% for seg, info in segments.items() %}
+  <div class="segment">
+    <h3>{{ seg }} <span class="muted">(trust level {{ info.trust_level }})</span></h3>
+    <p class="muted">{{ info.description }}</p>
+    <p><strong>May reach:</strong> {{ access[seg] | join(', ') }}</p>
+    <p><strong>Devices:</strong>
+      {% for name, d in seg_devices[seg] %}<span class="tag">{{ name }}</span>{% else %}none{% endfor %}
+    </p>
+    <p><strong>Resources:</strong>
+      {% for name, r in seg_resources[seg] %}<span class="tag res">{{ name }} [{{ r.allowed_roles | join('/') }}]</span>{% else %}none{% endfor %}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

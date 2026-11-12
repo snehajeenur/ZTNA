@@ -1,0 +1,45 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Request Access to a Resource</h1>
+  <p class="muted">Every request is evaluated against all zero-trust checks (default-deny).</p>
+  <form method="post" class="inline">
+    <div>
+      <label>Device</label>
+      <select name="device">
+        {% for name, d in devices.items() %}
+        <option value="{{ name }}" {% if selected.device == name %}selected{% endif %}>{{ name }} ({{ d.segment }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Resource</label>
+      <select name="resource">
+        {% for name, r in resources.items() %}
+        <option value="{{ name }}" {% if selected.resource == name %}selected{% endif %}>{{ name }} ({{ r.segment }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Evaluate</button>
+  </form>
+</div>
+
+{% if decision is not none %}
+<div class="card">
+  <h2>Policy Decision:
+    <span class="{{ 'allow' if decision else 'deny' }}">{{ 'ACCESS GRANTED' if decision else 'ACCESS DENIED' }}</span>
+  </h2>
+  <table>
+    <tr><th>Check</th><th>Result</th><th>Detail</th></tr>
+    {% for c in checks %}
+    <tr>
+      <td>{{ c.name }}</td>
+      <td class="{{ 'ok' if c.passed else 'bad' }}">{{ 'PASS' if c.passed else 'FAIL' }}</td>
+      <td>{{ c.detail }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

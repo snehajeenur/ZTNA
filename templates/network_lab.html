@@ -1,0 +1,78 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Network Lab (real Kali VLANs + firewall)</h1>
+  <p class="muted">Each row below is a real Linux network namespace inside Kali, on its own VLAN.</p>
+  <table>
+    <tr><th>Department</th><th>VLAN ID</th><th>Subnet</th><th>Device</th><th>IP address</th></tr>
+    {% for key, d in devices.items() %}
+    <tr>
+      <td>{{ d.segment }}</td>
+      <td>{{ vlans[d.segment].vlan_id }}</td>
+      <td>{{ vlans[d.segment].subnet }}</td>
+      <td>{{ d.name }}</td>
+      <td>{{ d.ip }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Run a demonstration scenario</h2>
+  <p class="muted">Each test shows TWO independent results: the application ZTNA decision, and the REAL network connectivity measured in Kali.</p>
+  <form method="post" class="inline">
+    <div>
+      <label>Scenario</label>
+      <select name="scenario">
+        {% for key, s in scenarios.items() %}
+        <option value="{{ key }}" {% if result and result.key == key %}selected{% endif %}>{{ s.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Run real test</button>
+  </form>
+</div>
+
+{% if result %}
+<div class="card">
+  <h2>{{ result.label }}</h2>
+
+  <h3>1. Application ZTNA decision:
+    <span class="{{ 'allow' if result.ztna_decision else 'deny' }}">
+      {{ 'GRANTED' if result.ztna_decision else 'DENIED' }}
+    </span>
+  </h3>
+  <table>
+    <tr><th>Check</th><th>Result</th><th>Detail</th></tr>
+    {% for c in result.ztna_checks %}
+    <tr>
+      <td>{{ c.name }}</td>
+      <td class="{{ 'ok' if c.passed else 'bad' }}">{{ 'PASS' if c.passed else 'FAIL' }}</td>
+      <td>{{ c.detail }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <h3>2. Real network connectivity (measured in Kali):</h3>
+  {% if result.net.error %}
+    <p class="bad">Could not run network test: {{ result.net.error }}</p>
+    <p class="muted">Make sure the lab is set up and Flask can run the test as root (see README).</p>
+  {% else %}
+  <table>
+    <tr><th>From namespace</th><th>To</th><th>Expected</th><th>Actual (TCP)</th><th>Matches policy?</th></tr>
+    <tr>
+      <td>{{ result.net.src_ns }}</td>
+      <td>{{ result.net.dst_ip }}:{{ result.net.dst_port }}</td>
+      <td>{{ result.expected_net }}</td>
+      <td class="{{ 'ok' if result.net.result == 'CONNECTED' else 'bad' }}">{{ result.net.result }}</td>
+      <td class="{{ 'ok' if result.net.result == result.expected_net else 'bad' }}">
+        {{ 'YES' if result.net.result == result.expected_net else 'NO' }}
+      </td>
+    </tr>
+  </table>
+  <p class="muted">This is a real TCP connection attempt, not a simulation. A GRANTED app decision is shown separately from actual connectivity.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
